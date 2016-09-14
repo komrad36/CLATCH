@@ -1,0 +1,8 @@
+*
+!.gitignore
+!test.jpg
+!CLATCH.cu
+!CLATCH.h
+!Makefile
+!main.cpp
+!README.md
