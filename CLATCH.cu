@@ -64,7 +64,7 @@ CLATCH_kernel(const cudaTextureObject_t d_img_tex, const cudaTextureObject_t d_t
 		int32_t accum[8];
 		for (uint32_t j = 0; j < 8; ++j) {
 			const ushort4 t = tex1D<ushort4>(d_triplets, triplet_base + j);
-			const int32_t b1 = s_ROI[ROI_base + t.y], b2 = s_ROI[ROI_base + t.y + 72];
+			const int32_t b1 = s_ROI[ROI_base + t.y],      b2 = s_ROI[ROI_base + t.y + 72]     ;
 			const int32_t a1 = s_ROI[ROI_base + t.x] - b1, a2 = s_ROI[ROI_base + t.x + 72] - b2;
 			const int32_t c1 = s_ROI[ROI_base + t.z] - b1, c2 = s_ROI[ROI_base + t.z + 72] - b2;
 			accum[j] = a1 * a1 - c1 * c1 + a2 * a2 - c2 * c2;
@@ -81,6 +81,6 @@ CLATCH_kernel(const cudaTextureObject_t d_img_tex, const cudaTextureObject_t d_t
 }
 
 void CLATCH(const cudaTextureObject_t d_img_tex, const cudaTextureObject_t d_triplets, const KeyPoint* const __restrict d_kps, const int num_kps, uint64_t* const __restrict d_desc) {
-	CLATCH_kernel << <num_kps, { 32, 16 } >> >(d_img_tex, d_triplets, d_kps, reinterpret_cast<uint32_t*>(d_desc));
+	CLATCH_kernel<<<num_kps, { 32, 16 } >>>(d_img_tex, d_triplets, d_kps, reinterpret_cast<uint32_t*>(d_desc));
 	cudaDeviceSynchronize();
 }
