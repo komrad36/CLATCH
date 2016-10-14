@@ -29,6 +29,9 @@
 // the much simpler ORB descriptor despite outputting twice
 // as many bits AND being a superior descriptor.
 //
+// NOTE: angles are in radians!! You can change this
+// behavior if it's a problem for your pipeline.
+//
 // A key insight responsible for much of the performance of
 // this laboriously crafted CUDA kernel is due to
 // Christopher Parker (https://github.com/csp256), to whom
