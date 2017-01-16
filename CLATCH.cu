@@ -64,20 +64,20 @@ CLATCH_kernel(const cudaTextureObject_t d_img_tex, const cudaTextureObject_t d_t
 	uint32_t ROI_base = 144 * (threadIdx.x & 3) + (threadIdx.x >> 2), triplet_base = threadIdx.y << 5, desc = 0;
 	__syncthreads();
 	for (int32_t i = 0; i < 4; ++i, triplet_base += 8) {
-		int32_t accum[8];
+		float accum[8];
 		for (uint32_t j = 0; j < 8; ++j) {
 			const ushort4 t = tex1D<ushort4>(d_triplets, triplet_base + j);
-			const int32_t b1 = s_ROI[ROI_base + t.y],      b2 = s_ROI[ROI_base + t.y + 72]     ;
-			const int32_t a1 = s_ROI[ROI_base + t.x] - b1, a2 = s_ROI[ROI_base + t.x + 72] - b2;
-			const int32_t c1 = s_ROI[ROI_base + t.z] - b1, c2 = s_ROI[ROI_base + t.z + 72] - b2;
-			accum[j] = a1 * a1 - c1 * c1 + a2 * a2 - c2 * c2;
+			const int32_t b1 = s_ROI[ROI_base + t.y],    b2 = s_ROI[ROI_base + t.y + 72]     ;
+			const float a1 = s_ROI[ROI_base + t.x] - b1, a2 = s_ROI[ROI_base + t.x + 72] - b2;
+			const float c1 = s_ROI[ROI_base + t.z] - b1, c2 = s_ROI[ROI_base + t.z + 72] - b2;
+			accum[j] = fmaf(a1, a1, a2 * a2 - c1 * c1 - c2 * c2);
 		}
 		for (int32_t k = 1; k <= 4; k <<= 1) {
 			for (int32_t s = 0; s < 8; s += k) accum[s] += __shfl_xor(accum[s], k);
 			if (threadIdx.x & k) for (int32_t s = 0; s < 8; s += k << 1) accum[s] = accum[s + k];
 		}
 		accum[0] += __shfl_xor(accum[0], 8);
-		desc |= (accum[0] + __shfl_xor(accum[0], 16) < 0) << ((i << 3) + (threadIdx.x & 7));
+		desc |= (accum[0] + __shfl_xor(accum[0], 16) < 0.0f) << ((i << 3) + (threadIdx.x & 7));
 	}
 	for (int32_t s = 1; s <= 4; s <<= 1) desc |= __shfl_xor(desc, s);
 	if (threadIdx.x == 0) d_desc[(blockIdx.x << 4) + threadIdx.y] = desc;
